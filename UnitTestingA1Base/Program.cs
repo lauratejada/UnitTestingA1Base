@@ -1,6 +1,8 @@
 #region Setup
+using System.Xml.Linq;
 using UnitTestingA1Base.Data;
 using UnitTestingA1Base.Models;
+using UnitTestingA1Base.Models.ViewModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,17 +48,33 @@ app.MapGet("/recipes/byIngredient", (string? name, int? id) =>
 ///<summary>
 /// Returns a HashSet of all Recipes that only contain ingredients that belong to the Dietary Restriction provided by name or Primary Key
 /// </summary>
-app.MapGet("/recipes/byDiet", (string name, int id) =>
+app.MapGet("/recipes/byDiet", (string? name, int? id) =>
 {
-
+    try
+    {
+        HashSet<Recipe> recipes = bll.GetRecipesByDietaryRestriction(id, name);
+        return Results.Ok(recipes);
+    }
+    catch (Exception ex)
+    {
+        return Results.NotFound();
+    }
 });
 
 ///<summary>
 ///Returns a HashSet of all recipes by either Name or Primary Key. 
 /// </summary>
-app.MapGet("/recipes", (string name, int id) =>
+app.MapGet("/recipes", (string? name, int? id) =>
 {
-
+    try
+    {
+        HashSet<Recipe> recipes = bll.GetRecipes(id, name);
+        return Results.Ok(recipes);
+    }
+    catch (Exception ex)
+    {
+        return Results.NotFound();
+    }
 });
 
 ///<summary>
@@ -72,7 +90,17 @@ app.MapGet("/recipes", (string name, int id) =>
 /// 
 /// All IDs should be created for these objects using the returned value of the AppStorage.GeneratePrimaryKey() method
 /// </summary>
-app.MapPost("/recipes", () => {
+app.MapPost("/recipes", (HashSet<RecipeWithIngredientsViewModel> recipesWithIngredients) => {
+    try
+    {
+        bll.AddRecipes(recipesWithIngredients);
+ 
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+       return Results.BadRequest();
+    }
 
 });
 
@@ -81,9 +109,17 @@ app.MapPost("/recipes", () => {
 /// If there is only one Recipe using that Ingredient, then the Recipe is also deleted, as well as all associated RecipeIngredients
 /// If there are multiple Recipes using that ingredient, a Forbidden response code should be provided with an appropriate message
 ///</summary>
-app.MapDelete("/ingredients", (int id, string name) =>
+app.MapDelete("/ingredients", (int? id, string? name) =>
 {
-
+    try
+    {
+        bll.DeleteAnIngredient(id, name);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.NotFound();
+    }
 });
 
 /// <summary>
